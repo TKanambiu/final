@@ -1,0 +1,12 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/$USER/public_html/
+    - export NPM_BIN=$(command -v npm || true)
+    - if [ -z "$NPM_BIN" ] && [ -x "/opt/cpanel/ea-nodejs22/bin/npm" ]; then export NPM_BIN="/opt/cpanel/ea-nodejs22/bin/npm"; fi
+    - if [ -z "$NPM_BIN" ] && [ -x "/opt/cpanel/ea-nodejs20/bin/npm" ]; then export NPM_BIN="/opt/cpanel/ea-nodejs20/bin/npm"; fi
+    - if [ -z "$NPM_BIN" ]; then echo "ERROR: npm was not found. Enable/select a Node.js version in cPanel Application Manager or adjust .cpanel.yml."; exit 1; fi
+    - $NPM_BIN install --no-audit --no-fund
+    - $NPM_BIN run build
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -R dist/client/. $DEPLOYPATH

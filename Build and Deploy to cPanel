@@ -1,0 +1,17 @@
+CPANEL GIT + TANSTACK START DEPLOYMENT
+
+This repository is configured for TanStack Start SPA mode and Apache/cPanel static hosting.
+
+Deployment flow:
+GitHub -> cPanel Git Version Control -> .cpanel.yml -> npm install -> npm run build -> dist/client -> public_html
+
+Requirements:
+- cPanel Git Version Control must be configured to deploy this repository.
+- Your cPanel account must have Node.js/npm available (normally through Application Manager / Setup Node.js App).
+- If npm is not available in the deployment environment, cPanel will stop with an explicit error rather than silently deploying a broken site.
+
+After deployment, public_html should contain the TanStack SPA shell (_shell.html), assets/, public assets, and .htaccess.
+
+The old GitHub Actions FTP workflow has been disabled because you are using cPanel Git Version Control. This prevents two deployment systems from competing with each other.
+
+The .htaccess file rewrites application routes to _shell.html while allowing existing files and directories to be served normally.
