@@ -1,0 +1,60 @@
+name: Build and Deploy to cPanel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build production SPA
+        run: bun run build
+
+      - name: Verify build output
+        run: |
+          echo "Checking build output..."
+
+          if [ ! -d "dist/client" ]; then
+            echo "ERROR: dist/client was not created."
+            echo "Available output:"
+            find . -maxdepth 3 -type d \( -name dist -o -name client -o -name public \) -print
+            exit 1
+          fi
+
+          if [ ! -f "dist/client/index.html" ]; then
+            echo "ERROR: dist/client/index.html was not created."
+            echo "Contents of dist/client:"
+            find dist/client -maxdepth 2 -type f | head -100
+            exit 1
+          fi
+
+          echo "Build successful."
+          echo "Production files:"
+          find dist/client -maxdepth 2 -type f | head -100
+
+      - name: Deploy to cPanel via SFTP
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USERNAME }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: ${{ secrets.SFTP_PORT }}
+          source: "dist/client/*"
+          target: "/home/nhwjktyx/public_html/"
+          overwrite: true
+          strip_components: 2
